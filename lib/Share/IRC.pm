@@ -4,11 +4,13 @@ use AnyEvent;
 use AnyEvent::IRC::Connection;
 use Data::Dump qw{pp};
 use Share::Util;
+use URI;
+use Encode;
 
 sub new {
   my ($class, %options) = @_;
   my $self = bless {
-    recent => [],
+    seen => {},
     queue  => [],
     timer => undef,
     nick => ($options{nick} || "sharebot2000"),
@@ -36,6 +38,15 @@ sub enqueue {
       return;
     }
   }
+
+  $options{url} = URI->new($options{url})->canonical;
+  my $key = join "-", map {lc $_} qw{host chan url};
+
+  if ($self->{seen}{$key}) {
+    $cv->croak("already shared");
+  }
+
+  $self->{seen}{$key}++;
 
   Share::Util::resolve_title $options{url}, sub {
     $options{title} = shift;

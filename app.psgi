@@ -1,15 +1,47 @@
 use Share::IRC;
+use Text::Xslate;
 use Plack::Request;
+use Share::Util;
 
 my $irc = Share::IRC->new;
+my $template = Text::Xslate->new(path => "share/templates");
+my %ips = {};
 
 sub {
   my $env = shift;
   my $req = Plack::Request->new($env);
 
+  my $ip = $req->remote_host;
+  my $limit = $ips{$ip} && time - $ips{$ip} < 60;
+
+  if ($req->method eq "GET") {
+    if (!defined($req->parameters->{url})) {
+      return [400, [qw{Content-Type text/plain}], ["invalid url"]];
+    }
+
+    return sub {
+      my $cb = shift;
+      Share::Util::resolve_title $req->parameters->{url}, sub {
+        my $title = shift;
+        my $html = $template->render("index.html", {
+            url => $req->parameters->{url},
+            title => $title,
+            limit => $limit
+          });
+        $cb->([200, [qw{Content-Type text/html}], [$html]]);
+      };
+    };
+  }
+
   if ($req->method ne "POST") {
     return [404, [qw{Content-Type text/plain}], ["not found"]];
   }
+
+  if ($limit) {
+    return [420, [qw{Content-Type text/plain}], ["slow your roll"]];
+  }
+
+  $ips{$ip} = time;
 
   for (qw{host chan url}) {
     if (!defined($req->parameters->{$_})) {
