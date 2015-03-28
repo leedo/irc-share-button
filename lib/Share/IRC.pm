@@ -1,7 +1,7 @@
 package Share::IRC;
 
 use AnyEvent;
-use AnyEvent::IRC::Connection;
+use AnyEvent::IRC::Client;
 use Data::Dump qw{pp};
 use Share::Util;
 use URI;
@@ -57,26 +57,38 @@ sub enqueue {
 
 sub share {
   my ($self, $options) = @_;
-  my $irc = AnyEvent::IRC::Connection->new;
-  $irc->connect($options->{host}, $options->{port} || 6667); 
+  my $irc = AnyEvent::IRC::Client->new;
+
+  my $timer; $timer = AE::timer 3, 0, sub {
+    undef $timer;
+    $options->{cv}->croak("timeout");
+    $irc->disconnect
+  };
+
+  $irc->enable_ssl if $options->{ssl};
+  $irc->connect($options->{host}, ($options->{port} || 6667), {
+      nick => $self->{nick},
+      $options->{ircuser} ? (user => $options->{ircuser}) : (),
+      $options->{ircpass} ? (password => $options->{ircpass}) : (),
+  });
+
   $irc->reg_cb(
-    connect => sub {
-      my ($irc) = @_;
-      $irc->send_msg(NICK => $self->{nick});
-      $irc->send_msg(USER => $self->{nick}, '*', '0', $self->{nick});
-    },
-    irc_001 => sub {
+    registered => sub {
       my ($irc) = @_;
       $irc->send_msg(JOIN => $options->{chan}, $options->{pass} || ());
     },
-    irc_join => sub {
-      my ($irc) = @_;
-      my $msg = encode utf8 => "$options->{title} - $options->{url}";
-      $irc->send_msg(PRIVMSG => $options->{chan}, $msg);
-      $irc->disconnect("beep boop");
+    join => sub {
+      my ($irc, $nick, $channel, $is_myself) = @_;
+      if ($is_myself) {
+        my $msg = encode utf8 => "$options->{title} - $options->{url}";
+        $irc->send_msg(PRIVMSG => $options->{chan}, $msg);
+        $irc->disconnect;
+        $options->{cv}->send;
+      }
     },
     disconnect => sub {
-      $options->{cv}->send;
+      undef $timer;
+      undef $irc;
     }
   );
 }

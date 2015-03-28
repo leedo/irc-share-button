@@ -1,11 +1,25 @@
 <html>
   <head>
     <title>Share a URL on IRC</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <style type="text/css">
       h1 {
         font-size: 20px;
         margin: 0;
         margin-bottom: 5px;
+        padding-left: 10px;
+      }
+      a.advanced-toggle {
+        cursor: pointer;
+      }
+      a.advanced-toggle:after {
+        content: "◀";
+        color: #666;
+        padding-left: 10px;
+      }
+      a.advanced-toggle.show:after {
+        content: "▼";
+        color: #666;
         padding-left: 10px;
       }
       body {
@@ -28,6 +42,7 @@
         font-weight: bold;
         color: #333;
       }
+      input[type="number"],
       input[type="text"] {
         width: 300px;
         padding: 4px 8px;
@@ -36,14 +51,32 @@
         box-shadow: inset 2px 2px 2px rgba(0,0,0,0.15);
         outline: none;
       }
+      input[type="number"] {
+        width: 80px;
+      }
+      fieldset {
+        display: none;
+        overflow: hidden;
+        border: 1px solid #999;
+        margin: 15px 0;
+        border-radius: 3px;
+        padding: 10px;
+      }
+      fieldset.show {
+        display: block;
+      }
+      fieldset input:last-child {
+        margin-bottom: 10px;
+      }
       input[type="submit"] {
         font-weight: bold;
+        margin-top: 15px;
       }
       input[type="text"].url {
         width: 100%;
       }
       input {
-        margin-bottom: 10px;
+        margin-bottom: 15px;
       }
     </style>
   </head>
@@ -52,13 +85,31 @@
     <form method="POST">
       <label>URL</label>
       <input type="text" name="url" disabled="disabled" value="<: $url :>" class="url">
-      <p><em><: $title :></em></p>
+      <p><strong>Title:</strong> <em><: $title :></em></p>
 
       <label>Network</label>
       <input type="text" name="host" value="irc.arstechnica.com">
 
       <label>Channel</label>
       <input type="text" name="chan" value="#share-test">
+
+      <label><a class="advanced-toggle">Advanced</a></label>
+      <fieldset class="advanced">
+        <label>Port</label>
+        <input type="number" name="port" value="6667">
+
+        <label>SSL</label>
+        <input type="checkbox" name="ssl">
+
+        <label>Channel Password</label>
+        <input type="text" name="pass" value="">
+
+        <label>User</label>
+        <input type="text" name="ircuser" value="">
+
+        <label>User Password</label>
+        <input type="text" name="ircpass" value="">
+      </fieldset>
 
       <: if $limit { :>
       <p>Too soon to share another URL.</p>
@@ -67,6 +118,14 @@
       <: } :>
 
     </form>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $('.advanced-toggle').on('click', function() {
+          $(this).toggleClass("show");
+          $('fieldset.advanced').toggleClass("show");
+        });
+      });
+    </script>
   </body>
 </html>
 

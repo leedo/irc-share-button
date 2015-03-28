@@ -2,6 +2,7 @@ use Share::IRC;
 use Text::Xslate;
 use Plack::Request;
 use Share::Util;
+use Encode;
 
 my $irc = Share::IRC->new;
 my $template = Text::Xslate->new(path => "share/templates");
@@ -28,7 +29,7 @@ sub {
             title => $title,
             limit => $limit
           });
-        $cb->([200, [qw{Content-Type text/html}], [$html]]);
+        $cb->([200, ["Content-Type", "text/html; charset=utf-8"], [encode utf8 => $html]]);
       };
     };
   }
@@ -62,7 +63,12 @@ sub {
       $cb->([200, [qw{Content-Type text/plain}], ["success"]]);
     });
 
-    my %options = map {$_ => $req->parameters->{$_}} qw{host port ssl chan pass url};
+    my %options = map {$_ => $req->parameters->{$_}}
+      qw{host port chan pass url ircuser ircpass};
+
+    $options{ssl} = defined($req->parameters->{ssl})
+      && $req->parameters->{ssl} eq "on";
+
     $irc->enqueue(%options, $cv);
   }
 };
