@@ -124,6 +124,20 @@
           $(this).toggleClass("show");
           $('fieldset.advanced').toggleClass("show");
         });
+        $('form').on('submit', function(e) {
+          var form = $(this);
+          e.preventDefault();
+          $.ajax({
+            type: "POST",
+            dataType: "text",
+            url: window.location.toString(),
+            data: form.serialize(),
+            success: function(res) {
+              console.log(res);
+              form.find('input[type="submit"]').replaceWith(res);
+            }
+          });
+        });
       });
     </script>
   </body>
