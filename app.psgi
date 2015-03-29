@@ -16,6 +16,10 @@ sub {
   my $limit = $ips{$ip} && time - $ips{$ip} < 60;
 
   if ($req->method eq "GET") {
+    if ($req->path eq "/demo") {
+      my $html = $template->render("demo.html");
+      return [200, ["Content-Type", "text/html; charset=utf-8"], [encode utf8 => $html]];
+    }
     if (!defined($req->parameters->{url})) {
       return [400, [qw{Content-Type text/plain}], ["invalid url"]];
     }
