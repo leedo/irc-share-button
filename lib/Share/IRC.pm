@@ -40,7 +40,7 @@ sub enqueue {
   }
 
   $options{url} = URI->new($options{url})->canonical;
-  my $key = join "-", map {lc $_} qw{host chan url};
+  my $key = join "-", map {lc $options{$_}} qw{host chan url};
 
   if ($self->{seen}{$key}) {
     $cv->croak("already shared");
