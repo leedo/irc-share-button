@@ -22,6 +22,12 @@
         color: #666;
         padding-left: 10px;
       }
+      .status.error {
+        color: red;
+      }
+      .status.ok {
+        color: green;
+      }
       body {
         font-family: sans-serif;
         font-size: 16px;
@@ -112,10 +118,9 @@
       </fieldset>
 
       <: if $limit { :>
-      <p>Too soon to share another URL.</p>
-      <: } else { :>
-      <input type="submit" value="Send it">
+      <p class="status error">Too soon to share another URL.</p>
       <: } :>
+      <input type="submit" value="Send it">
 
     </form>
     <script type="text/javascript">
@@ -133,8 +138,20 @@
             url: window.location.toString(),
             data: form.serialize(),
             success: function(res) {
-              console.log(res);
-              form.find('input[type="submit"]').replaceWith(res);
+              var status = $('p.status');
+              if (!status.length)
+                status = $('<p/>', {'class':'status'});
+              status.get(0).className = "status ok";
+              status.html(res);
+              form.find('input[type="submit"]').replaceWith(status);
+            },
+            error: function(res, error, message) {
+              var status = $('p.status');
+              if (!status.length)
+                status = $('<p/>', {'class':'status'});
+              status.get(0).className = "status error";
+              status.html(res.responseText);
+              form.find('input[type="submit"]').before(status);
             }
           });
         });
