@@ -12,7 +12,7 @@ sub {
   my $env = shift;
   my $req = Plack::Request->new($env);
 
-  my $ip = $req->remote_host;
+  my $ip = $req->address;
   my $limit = $ips{$ip} && time - $ips{$ip} < 60;
 
   if ($req->method eq "GET") {
