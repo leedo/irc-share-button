@@ -46,11 +46,10 @@ sub enqueue {
     $cv->croak("already shared");
   }
 
-  $self->{seen}{$key}++;
-
   Share::Util::resolve_title $options{url}, sub {
     $options{title} = shift;
     $options{cv} = $cv;
+    $options{key} = $key;
     push @{$self->{queue}}, \%options;
   };
 }
@@ -64,6 +63,8 @@ sub share {
     $options->{cv}->croak("timeout");
     $irc->disconnect
   };
+
+  $self->{seen}{$options->{key}}++;
 
   $irc->enable_ssl if $options->{ssl};
   $irc->connect($options->{host}, ($options->{port} || 6667), {

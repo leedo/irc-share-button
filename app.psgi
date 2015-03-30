@@ -62,6 +62,7 @@ sub {
       eval { shift->recv };
       if ($@) {
         $cb->([500, [qw{Content-Type text/plain}], ["error: $@"]]);
+        delete $ips{$ip};
         return;
       }
       $cb->([200, [qw{Content-Type text/plain}], ["success"]]);
