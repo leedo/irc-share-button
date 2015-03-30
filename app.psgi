@@ -13,7 +13,8 @@ sub {
   my $req = Plack::Request->new($env);
 
   my $ip = $req->address;
-  my $limit = $ips{$ip} && time - $ips{$ip} < 60;
+  my $time = time;
+  my $limit = $ips{$ip} && $time - $ips{$ip} < 60;
 
   if ($req->method eq "GET") {
     if ($req->path eq "/demo") {
@@ -43,7 +44,8 @@ sub {
   }
 
   if ($limit) {
-    return [420, [qw{Content-Type text/plain}], ["slow your roll"]];
+    my $diff = 60 - ($time - $ips{$ip});
+    return [420, [qw{Content-Type text/plain}], ["slow your roll (wait $diff seconds)"]];
   }
 
   $ips{$ip} = time;
