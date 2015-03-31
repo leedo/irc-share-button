@@ -29,10 +29,12 @@ sub {
       my $cb = shift;
       Share::Util::resolve_title $req->parameters->{url}, sub {
         my $title = shift;
+        my $diff = $limit && 60 - ($time - $ips{$ip});
         my $html = $template->render("index.html", {
             url => $req->parameters->{url},
             title => $title,
-            limit => $limit
+            limit => $limit,
+            diff  => $diff,
           });
         $cb->([200, ["Content-Type", "text/html; charset=utf-8"], [encode utf8 => $html]]);
       };
@@ -45,7 +47,7 @@ sub {
 
   if ($limit) {
     my $diff = 60 - ($time - $ips{$ip});
-    return [420, [qw{Content-Type text/plain}], ["slow your roll (wait $diff seconds)"]];
+    return [420, [qw{Content-Type text/plain}], ["Too soon to share another URL (wait $diff seconds)"]];
   }
 
   $ips{$ip} = time;
@@ -61,13 +63,13 @@ sub {
     my $cv = AE::cv;
 
     $cv->cb(sub {
-      eval { shift->recv };
+      my $log = eval { shift->recv };
       if ($@) {
         $cb->([500, [qw{Content-Type text/plain}], ["error: $@"]]);
         delete $ips{$ip};
         return;
       }
-      $cb->([200, [qw{Content-Type text/plain}], ["success"]]);
+      $cb->([200, [qw{Content-Type text/plain}], [join "\n", @$log]]);
     });
 
     my %options = map {$_ => $req->parameters->{$_}}

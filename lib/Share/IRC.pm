@@ -4,6 +4,7 @@ use AnyEvent;
 use AnyEvent::IRC::Client;
 use Data::Dump qw{pp};
 use Share::Util;
+use AnyEvent::IRC::Util;
 use URI;
 use Encode;
 
@@ -11,6 +12,7 @@ sub new {
   my ($class, %options) = @_;
   my $self = bless {
     seen => {},
+    log  => {},
     queue  => [],
     timer => undef,
     nick => ($options{nick} || "sharebot2000"),
@@ -43,11 +45,15 @@ sub enqueue {
   my $key = join "-", map {lc $options{$_}} qw{host chan url};
 
   if ($self->{seen}{$key}) {
-    $cv->croak("already shared");
+    $cv->croak("already shared\n");
+    return;
   }
 
   Share::Util::resolve_title $options{url}, sub {
-    $options{title} = shift;
+    my $title = shift;
+    $title =~ s/[\r\n]//g;
+    $title = substr($title, 0, 255);
+    $options{title} = $title;
     $options{cv} = $cv;
     $options{key} = $key;
     push @{$self->{queue}}, \%options;
@@ -64,6 +70,7 @@ sub share {
     $irc->disconnect
   };
 
+  my $log = [];
   $self->{seen}{$options->{key}}++;
 
   $irc->enable_ssl if $options->{ssl};
@@ -83,9 +90,18 @@ sub share {
       if ($is_myself) {
         my $msg = encode utf8 => "$options->{title} - $options->{url}";
         $irc->send_msg(PRIVMSG => $options->{chan}, $msg);
+        $irc->send_msg(PART => $options->{chan});
         $irc->disconnect;
-        $options->{cv}->send;
+        $options->{cv}->send($log);;
       }
+    },
+    send => sub {
+      my @params = @{$_[1]};
+      push @$log, join " ", "->", @params[1 .. $#params];
+    },
+    read => sub {
+      my ($command, $params) = @{$_[1]}{qw{command params}};
+      push @$log, join " ", "<-", $command, @$params;
     },
     disconnect => sub {
       undef $timer;
