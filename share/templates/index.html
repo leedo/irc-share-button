@@ -131,6 +131,15 @@
       input[type="submit"] {
         font-weight: bold;
         margin-top: 15px;
+        background: #439fe0;
+        color: white;
+        padding: .75rem 2rem !important;
+        text-shadow: 0 1px 2px black;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        border-bottom: 2px solid #194ba3;
+        cursor: pointer;
+        width: auto;
+        border-radius: .25rem;
       }
       input.url {
         width: 100%;
@@ -199,7 +208,7 @@
       <: if $limit { :>
       <p class="status error">Too soon to share another URL (wait <: $diff :> seconds)</p>
       <: } :>
-      <input type="submit" value="Send it">
+      <input type="submit" value="Share URL">
 
     </form>
   </div>
