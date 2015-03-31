@@ -68,7 +68,7 @@ sub {
         my $err = $@;
         $err =~ s/ at .+ line \d+\.$//g;
         $cb->([500, [qw{Content-Type text/plain}], [$err]]);
-        delete $ips{$ip};
+        $ips{$ip} -= 45;
         return;
       }
       $cb->([200, [qw{Content-Type text/plain}], [$log]]);
