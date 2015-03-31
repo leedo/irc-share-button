@@ -142,6 +142,10 @@
         width: auto;
         border-radius: .25rem;
       }
+      input[type="submit"].disabled {
+        background: #ccc;
+        border-bottom: 1px solid #999;
+      }
       input.url {
         width: 100%;
       }
@@ -222,6 +226,7 @@
         });
         $('form').on('submit', function(e) {
           var form = $(this);
+          form.find('input[type="submit"]').attr("disabled", "disabled").addClass("disabled").val("Working...");
           e.preventDefault();
           $.ajax({
             type: "POST",
