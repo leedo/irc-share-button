@@ -3,6 +3,7 @@ use Text::Xslate;
 use Plack::Request;
 use Share::Util;
 use Encode;
+use Plack::Builder;
 
 my $irc = Share::IRC->new;
 my $template = Text::Xslate->new(path => "share/templates");
