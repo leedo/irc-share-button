@@ -207,8 +207,9 @@
 
       <: if $limit { :>
       <p class="status error">Too soon to share another URL (wait <: $diff :> seconds)</p>
-      <: } :>
+      <: } else { :>
       <input type="submit" value="Share URL">
+      <: } :>
 
     </form>
   </div>
