@@ -8,6 +8,10 @@ use AnyEvent::IRC::Util;
 use URI;
 use Encode;
 
+our @EXEMPT = (
+  ["irc.arstechnica.com", "#sharehole"]
+);
+
 sub new {
   my ($class, %options) = @_;
   my $self = bless {
@@ -45,8 +49,19 @@ sub enqueue {
   my $key = join "-", map {lc $options{$_}} qw{host chan url};
 
   if ($self->{seen}{$key}) {
-    $cv->croak("already shared\n");
-    return;
+    my $skip = 0;
+
+    for my $e (@EXEMPT) {
+      if ($options{host} eq $e->[0] && $options{chan} eq $e->[1]) {
+        $skip = 1;
+        last;
+      }
+    }
+
+    if (!$skip) {
+      $cv->croak("already shared\n");
+      return;
+    }
   }
 
   Share::Util::resolve_title $options{url}, sub {
