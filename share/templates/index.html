@@ -6,16 +6,25 @@
       h1 {
         font-size: 24px;
         text-shadow: 0px 0px 4px rgba(0,0,0,0.8);
-        padding: 30px 30px;
         color: rgba(255,255,255,0.8);
         font-weight: bold;
         margin: 0;
-
+        position: absolute;
+        top: 10px;
+        left: 10px;
+      }
+      blockquote {
+        font-size: 24px;
+        font-weight: bold;
+        padding: 30px 30px;
+        text-align: center;
+        margin: 0;
       }
       .intro {
         background: url(https://cdn.arstechnica.net/wp-content/uploads/2015/03/about-us-dark.jpg) top center no-repeat;
         background-size: cover;
         color: #fff;
+        position: relative;
       }
       .intro p {
         text-align: center;
@@ -134,8 +143,9 @@
   <body>
     <div class="intro">
       <h1><span class="logo"><span class="tilt">#</span>irc</span></h1>
+      <blockquote>&ldquo;It&rsquo;s like a self-hosted, extensible Slack&hellip;&rdquo;</blockquote>
       <div class="overlay">
-        <p>IRC is a platform for team communication: a time-tested open protocol, multiple server and client implementations, control your own data and security.</p>
+        <p>IRC is a platform for team communication: time-tested open protocol, multiple server and client implementations, control your own data and security.</p>
         <p style="color:rgba(255,255,255,0.8);font-size:0.9em;">IRC will always be free to use.</p>
       </div>
 
