@@ -219,18 +219,17 @@
             data: form.serialize(),
             success: function(res) {
               var blockquote = $('<blockquote/>', {'class':'log'});
-              blockquote.html(res)
+              blockquote.text(res)
               form.replaceWith(blockquote);
               blockquote.get(0).scrollTop = blockquote.get(0).scrollHeight;
-              blockquote.before($('<h2/>').html("Success!"));
+              blockquote.before($('<h2/>').text("Success!"));
             },
             error: function(res, error, message) {
-              var status = $('p.status');
-              if (!status.length)
-                status = $('<p/>', {'class':'status'});
-              status.get(0).className = "status error";
-              status.html(res.responseText);
-              form.find('input[type="submit"]').before(status);
+              var blockquote = $('<blockquote/>', {'class':'log'});
+              blockquote.text(res.responseText)
+              form.replaceWith(blockquote);
+              blockquote.get(0).scrollTop = blockquote.get(0).scrollHeight;
+              blockquote.before($('<h2/>').text("Error!"));
             }
           });
         });

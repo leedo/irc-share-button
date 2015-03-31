@@ -64,14 +64,15 @@ sub share {
   my ($self, $options) = @_;
   my $irc = AnyEvent::IRC::Client->new;
 
-  my $timer; $timer = AE::timer 3, 0, sub {
+  my $log = ["-> connecting to $options->{host}"];
+  $self->{seen}{$options->{key}}++;
+
+  my $timer; $timer = AE::timer 2, 0, sub {
     undef $timer;
-    $options->{cv}->croak("timeout");
+    push @$log, "-> connection timed out";
+    $options->{cv}->croak(join "\n", @$log);
     $irc->disconnect
   };
-
-  my $log = [];
-  $self->{seen}{$options->{key}}++;
 
   $irc->enable_ssl if $options->{ssl};
   $irc->connect($options->{host}, ($options->{port} || 6667), {
@@ -92,7 +93,8 @@ sub share {
         $irc->send_msg(PRIVMSG => $options->{chan}, $msg);
         $irc->send_msg(PART => $options->{chan});
         $irc->disconnect;
-        $options->{cv}->send($log);;
+        push @$log, "-> disconnecting from $options->{host}";
+        $options->{cv}->send(join "\n", @$log);;
       }
     },
     send => sub {

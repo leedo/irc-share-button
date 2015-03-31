@@ -65,11 +65,13 @@ sub {
     $cv->cb(sub {
       my $log = eval { shift->recv };
       if ($@) {
-        $cb->([500, [qw{Content-Type text/plain}], ["error: $@"]]);
+        my $err = $@;
+        $err =~ s/ at .+ line \d+\.$//g;
+        $cb->([500, [qw{Content-Type text/plain}], [$err]]);
         delete $ips{$ip};
         return;
       }
-      $cb->([200, [qw{Content-Type text/plain}], [join "\n", @$log]]);
+      $cb->([200, [qw{Content-Type text/plain}], [$log]]);
     });
 
     my %options = map {$_ => $req->parameters->{$_}}
